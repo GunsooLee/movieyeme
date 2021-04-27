@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.tsis.movieyeme.dao.YemeDao">
+ 
+	<select id="getMovies" resultType="Movie">
+		SELECT id, name, price
+		FROM movie
+	</select>
+
+	<select id="getTheaters" resultType="Theater">
+		SELECT id, name, width, height
+		FROM Theater
+	</select>
+	
+	<select id="getShows" resultType="Show">
+		SELECT s.id 'id', theater_id, t.name 'tname', movie_id, m.name 'mname', time, count(s.id) AS 'seats', SUM(!ISNULL(k.phone)) AS 'reserved'
+		FROM movieyeme.show s
+			JOIN movieyeme.movie m ON s.movie_id = m.id
+		    JOIN movieyeme.theater t on s.theater_id = t.id
+		    JOIN Ticket k ON s.id = k.show_id
+		GROUP BY s.id
+	</select>
+	
+	<select id="getShow" resultType="Show">
+		SELECT s.id 'id', theater_id, t.name 'tname', movie_id, m.name 'mname', time, count(s.id) AS 'seats', SUM(!ISNULL(k.phone)) AS 'reserved'
+		FROM movieyeme.show s
+			JOIN movieyeme.movie m ON s.movie_id = m.id
+		    JOIN movieyeme.theater t on s.theater_id = t.id
+		    JOIN Ticket k ON s.id = k.show_id
+		WHERE s.id = #{showid}
+		GROUP BY s.id
+	</select>
+	
+	<select id="getAllTickets" resultType="Ticket">
+		SELECT id, show_id, width, height, phone
+		FROM Ticket
+		WHERE show_id = #{show_id}
+	</select>
+	
+	<select id="getTickets" resultType="Ticket">
+		SELECT t.id, show_id, t.width, t.height, phone, th.name tname, m.name mname
+			FROM Ticket t JOIN movieyeme.show s ON t.show_id = s.id
+	        JOIN Theater th ON th.id = s.theater_id
+	        JOIN movie m ON m.id = s.movie_id
+			WHERE phone = #{phone}
+	</select>
+	
+	<insert id="setTicket">
+		INSERT INTO Ticket 
+		(show_id, width, height)
+		VALUES (#{show_id}, #{width}, #{height})
+	</insert>
+	
+	<update id="reserve">
+		UPDATE Ticket
+		SET phone = #{phone}
+		WHERE show_id = #{showid}
+		AND width = #{width}
+		AND height = #{height}
+	</update>
+</mapper>
